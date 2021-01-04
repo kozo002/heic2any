@@ -771,5 +771,6 @@ function heic2any(ref) {
 }
 ;
 
+console.log(heic2any);
 return heic2any;
 }));
