@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     if(typeof exports === 'object' && typeof module !== 'undefined') {
         module.exports = factory();
         module.exports.default = factory();
+        console.log(module)
     }
 	else if(typeof define === 'function' && define.amd) {
         define(factory);
