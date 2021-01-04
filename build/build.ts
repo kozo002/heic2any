@@ -37,23 +37,10 @@ async function startBuild() {
 	const gifshot = fs.readFileSync("./src/gifshot.js", { encoding: "utf8" });
 	console.log("🔨 📄 Reading main files");
 	let main = fs.readFileSync("./dist/heic2any.js", { encoding: "utf8" });
-	let worker
-	try {
-		worker = fs.readFileSync("./dist/worker.js", { encoding: "utf8" });
-	} catch {
-		worker = ''
-	}
 	console.log("🔨 📄 Creating worker code");
-	worker = `var workerString = \`\n${(watching
-		? libheif
-		: uglify.minify(libheif).code
-	).replace(
-		/(\\)/g,
-		"\\\\"
-	)}\n${worker}\n\`;\nvar blob = new Blob([workerString], {type: 'application/javascript'});\nwindow.__heic2any__worker = new Worker(URL.createObjectURL(blob));`;
 
 	console.log("🔨 📄 Fixing main files");
-	main = worker + libheif + main;
+	main = libheif + main;
 	main = main.split(`require("./libheif")`).join("");
 	main = main.split(`require("./gifshot")`).join("");
 	main = main.split(`import "./libheif"`).join("");
@@ -75,8 +62,8 @@ async function startBuild() {
 		fs.writeFileSync("./dist/heic2any.min.js", libMin);
 	}
 	console.log("🔨 📄 Removing extra files");
-	await execute("rm ./dist/worker.d.ts -f");
-	await execute("rm ./dist/worker.js -f");
+	// await execute("rm ./dist/worker.d.ts -f");
+	// await execute("rm ./dist/worker.js -f");
 	console.log("🔨 🏁 Build finished successfully");
 }
 

@@ -259,30 +259,8 @@ function processor(id: string, buffer: ArrayBuffer): Promise<{
   });
 }
 
-function decodeBuffer(
-	buffer: ArrayBuffer,
-	options: { useWorker: boolean } = { useWorker: true }
-): Promise<ImageData[]> {
+function decodeBuffer(buffer: ArrayBuffer): Promise<ImageData[]> {
 	const id = (Math.random() * new Date().getTime()).toString();
-
-	if (options.useWorker) {
-		return new Promise((resolve, reject) => {
-			const message = { id, buffer };
-			((window as any).__heic2any__worker as Worker).postMessage(message);
-			((window as any).__heic2any__worker as Worker).addEventListener(
-				"message",
-				(message) => {
-					if (message.data.id === id) {
-						if (message.data.error) {
-							return reject(message.data.error);
-						}
-						return resolve(message.data.imageDataArr);
-					}
-				}
-			);
-		});
-	}
-
 	return new Promise((resolve, reject) => {
 		processor(id, buffer).then((data) => {
 			if (data.id === id) {
@@ -305,14 +283,12 @@ function heic2any({
 	quality = 0.92,
 	gifInterval = 0.4,
 	multiple = undefined,
-	useWorker = true,
 }: {
 	blob: Blob;
 	multiple?: true;
 	toType?: string;
 	quality?: number;
 	gifInterval?: number;
-	useWorker?: boolean;
 }): Promise<Blob | Blob[]> {
 	return new Promise(
 		(
@@ -350,7 +326,7 @@ function heic2any({
 						)
 					);
 				}
-				decodeBuffer(buffer, { useWorker })
+				decodeBuffer(buffer)
 					.then((imageDataArr) => {
 						gifWidth = imageDataArr[0].width;
 						gifHeight = imageDataArr[0].height;
