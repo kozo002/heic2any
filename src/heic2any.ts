@@ -1,5 +1,6 @@
 import "./gifshot";
 import "./libheif";
+import { processor } from "./processor";
 
 const supportedMIMETypes = ["image/png", "image/jpeg", "image/gif"];
 
@@ -194,23 +195,38 @@ const utils = {
 	},
 };
 
-function decodeBuffer(buffer: ArrayBuffer): Promise<ImageData[]> {
-	return new Promise((resolve, reject) => {
-		const id = (Math.random() * new Date().getTime()).toString();
-		const message = { id, buffer };
-		((window as any).__heic2any__worker as Worker).postMessage(message);
-		((window as any).__heic2any__worker as Worker).addEventListener(
-			"message",
-			(message) => {
-				if (message.data.id === id) {
-					if (message.data.error) {
-						return reject(message.data.error);
+async function decodeBuffer(
+	buffer: ArrayBuffer,
+	options: { useWorker: boolean } = { useWorker: true }
+): Promise<ImageData[]> {
+	const id = (Math.random() * new Date().getTime()).toString();
+
+	if (options.useWorker) {
+		return new Promise((resolve, reject) => {
+			const message = { id, buffer };
+			((window as any).__heic2any__worker as Worker).postMessage(message);
+			((window as any).__heic2any__worker as Worker).addEventListener(
+				"message",
+				(message) => {
+					if (message.data.id === id) {
+						if (message.data.error) {
+							return reject(message.data.error);
+						}
+						return resolve(message.data.imageDataArr);
 					}
-					return resolve(message.data.imageDataArr);
 				}
-			}
-		);
-	});
+			);
+		});
+	}
+
+	const data = await processor(id, buffer);
+	if (data.id === id) {
+		if (data.error) {
+			throw data.error;
+		}
+		return data.imageDataArr;
+	}
+	return [];
 }
 
 function heic2any({
