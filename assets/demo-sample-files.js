@@ -6,7 +6,7 @@ function loadHEIC(url) {
 			})
 			.then(function (x) {
 				console.log("working on", x);
-				return heic2any({ blob: x, toType: "image/gif" });
+				return heic2any({ blob: x, toType: "image/gif", useWorker: false });
 			})
 			.then(function (x) {
 				var url = URL.createObjectURL(x);
