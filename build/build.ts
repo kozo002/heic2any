@@ -53,7 +53,7 @@ async function startBuild() {
 	)}\n${worker}\n\`;\nvar blob = new Blob([workerString], {type: 'application/javascript'});\nwindow.__heic2any__worker = new Worker(URL.createObjectURL(blob));`;
 
 	console.log("🔨 📄 Fixing main files");
-	main = worker + main;
+	main = worker + libheif + main;
 	main = main.split(`require("./libheif")`).join("");
 	main = main.split(`require("./gifshot")`).join("");
 	main = main.split(`import "./libheif"`).join("");
