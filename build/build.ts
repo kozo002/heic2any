@@ -37,7 +37,12 @@ async function startBuild() {
 	const gifshot = fs.readFileSync("./src/gifshot.js", { encoding: "utf8" });
 	console.log("🔨 📄 Reading main files");
 	let main = fs.readFileSync("./dist/heic2any.js", { encoding: "utf8" });
-	let worker = fs.readFileSync("./dist/worker.js", { encoding: "utf8" });
+	let worker
+	try {
+		worker = fs.readFileSync("./dist/worker.js", { encoding: "utf8" });
+	} catch {
+		worker = ''
+	}
 	console.log("🔨 📄 Creating worker code");
 	worker = `var workerString = \`\n${(watching
 		? libheif
