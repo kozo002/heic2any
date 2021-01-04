@@ -1,6 +1,5 @@
 import "./gifshot";
 import "./libheif";
-import { processor } from "./processor";
 
 const supportedMIMETypes = ["image/png", "image/jpeg", "image/gif"];
 
@@ -195,7 +194,72 @@ const utils = {
 	},
 };
 
-async function decodeBuffer(
+function processSingleImage(image: libheif.DecodeResult): Promise<ImageData> {
+	return new Promise((resolve, reject) => {
+		const w = image.get_width();
+		const h = image.get_height();
+		const whiteImage = new ImageData(w, h);
+		for (let i = 0; i < w * h; i++) {
+			whiteImage.data[i * 4 + 3] = 255;
+		}
+		image.display(whiteImage, (imageData) => {
+			if (!imageData) {
+				return reject(
+					"ERR_LIBHEIF Error while processing single image and generating image data, could not ensure image"
+				);
+			}
+			resolve(imageData);
+		});
+	});
+}
+
+function processor(id: string, buffer: ArrayBuffer): Promise<{
+  id: string;
+  imageDataArr: ImageData[];
+  error: string;
+}> {
+  return new Promise((resolve, reject) => {
+    try {
+      const decoder = new libheif.HeifDecoder();
+      let imagesArr = decoder.decode(buffer);
+      if (!imagesArr || !imagesArr.length) {
+        throw "ERR_LIBHEIF format not supported";
+      }
+      imagesArr = imagesArr.filter((x) => {
+        let valid = true;
+        try {
+          /*
+          sometimes the heic container is valid
+          yet the images themselves are corrupt
+          */
+          x.get_height();
+        } catch (e) {
+          valid = false;
+        }
+        return valid;
+      });
+      if (!imagesArr.length) {
+        throw "ERR_LIBHEIF Heic doesn't contain valid images";
+      }
+
+      Promise.all(imagesArr.map((image) => processSingleImage(image)))
+        .then((imageDataArr) => {
+          resolve({
+            id,
+            imageDataArr,
+            error: ""
+          })
+        })
+        .catch((e) => {
+        	reject(e && e.toString ? e.toString() : e)
+        });
+    } catch (e) {
+      reject(e && e.toString ? e.toString() : e)
+    }
+  });
+}
+
+function decodeBuffer(
 	buffer: ArrayBuffer,
 	options: { useWorker: boolean } = { useWorker: true }
 ): Promise<ImageData[]> {
@@ -219,14 +283,20 @@ async function decodeBuffer(
 		});
 	}
 
-	const data = await processor(id, buffer);
-	if (data.id === id) {
-		if (data.error) {
-			throw data.error;
-		}
-		return data.imageDataArr;
-	}
-	return [];
+	return new Promise((resolve, reject) => {
+		processor(id, buffer).then((data) => {
+			if (data.id === id) {
+				if (data.error) {
+					console.error(data.error)
+					return reject(data.error);
+				}
+				return resolve(data.imageDataArr);
+			}
+			return resolve([]);
+		}).catch((err) => {
+			reject(err)
+		});
+	});
 }
 
 function heic2any({
@@ -235,12 +305,14 @@ function heic2any({
 	quality = 0.92,
 	gifInterval = 0.4,
 	multiple = undefined,
+	useWorker = true,
 }: {
 	blob: Blob;
 	multiple?: true;
 	toType?: string;
 	quality?: number;
 	gifInterval?: number;
+	useWorker?: boolean;
 }): Promise<Blob | Blob[]> {
 	return new Promise(
 		(
@@ -278,7 +350,7 @@ function heic2any({
 						)
 					);
 				}
-				decodeBuffer(buffer)
+				decodeBuffer(buffer, { useWorker })
 					.then((imageDataArr) => {
 						gifWidth = imageDataArr[0].width;
 						gifHeight = imageDataArr[0].height;

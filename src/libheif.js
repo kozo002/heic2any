@@ -406,7 +406,9 @@ for (key in Module) {
     }
     libheif[key] = Module[key]
 }
-delete this["Module"];
+if (this && this["Module"]) {
+    delete this["Module"]
+}
 
 function createNamedFunction(name, body) {
     if (!name) {
