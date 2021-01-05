@@ -431,5 +431,6 @@ if (typeof define === "function" && define.amd) {
         return libheif
     }))
 }
+return libheif;
 })).call(this);
 // .... end libheif
