@@ -1,8 +1,9 @@
 export const umdString = `
 (function (global, factory) {
     if(typeof exports === 'object' && typeof module !== 'undefined') {
-        module.exports = factory();
-        module.exports.default = factory();
+        var lib = factory();
+        module.exports = lib;
+        module.exports.default = lib;
     }
 	else if(typeof define === 'function' && define.amd) {
         define(factory);

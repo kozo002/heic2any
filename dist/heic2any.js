@@ -1,8 +1,9 @@
+
 (function (global, factory) {
     if(typeof exports === 'object' && typeof module !== 'undefined') {
-        module.exports = factory();
-        console.log('module', module)
-        module.exports.default = factory();
+        var lib = factory();
+        module.exports = lib;
+        module.exports.default = lib;
     }
 	else if(typeof define === 'function' && define.amd) {
         define(factory);
@@ -450,7 +451,6 @@ if (typeof define === "function" && define.amd) {
 }
 Module.libheif = libheif;
 })).call(this);
-console.log('Module', Module);
 return Module.libheif;
 // .... end libheif
 }));
