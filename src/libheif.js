@@ -419,7 +419,7 @@ function createNamedFunction(name, body) {
 }
 var root = this;
 if(typeof window !== "undefined") {
-    window.libheif = libheif
+    // window.libheif = libheif
 }
 else if(typeof global !== "undefined") {
     global.libheif = libheif
