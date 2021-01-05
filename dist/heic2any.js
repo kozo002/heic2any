@@ -448,7 +448,8 @@ if (typeof define === "function" && define.amd) {
         return libheif
     }))
 }
-return libheif;
+Module.libheif = libheif;
 })).call(this);
+return Module.libheif;
 // .... end libheif
 }));
