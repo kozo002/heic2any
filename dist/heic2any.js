@@ -450,5 +450,4 @@ if (typeof define === "function" && define.amd) {
 }
 })).call(this);
 // .... end libheif
-return heic2any;
 }));
