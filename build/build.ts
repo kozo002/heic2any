@@ -50,7 +50,8 @@ async function startBuild() {
 		.join("");
 	main = main.split(/exports\.default = heic2any/).join("");
 
-	let lib = gifshot + umdString + main + returnString;
+	// let lib = gifshot + umdString + main + returnString;
+	let lib = umdString + libheif + returnString;
 
 	console.log("🔨 🧱 Transpiling with buble");
 	lib = buble.transform(lib).code;
